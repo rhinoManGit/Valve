@@ -92,7 +92,7 @@ module.exports = async function(req, res, next) {
   }
 
   // 解密
-  let api   = `http://47.99.89.146/api/Values/get?id=${req.query.content}`,
+  let api   = `http://47.99.89.146/api/Code/Decode?value=${req.query.content}`,
       param = '';
 
 
