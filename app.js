@@ -9,7 +9,7 @@ const session      = require('express-session');
 const uuid         = require('node-uuid');
 
 // 日志
-const log      = require('./tools/logger');
+//const log      = require('./tools/logger');
 // 路由
 const routes   = require('./middlewares/routes');
 // 中间件
@@ -104,10 +104,10 @@ app.use(function(req, res, next) {
 // error handler
 app.use(function(err, req, res, next) {
 
-  log.warn(`[NEXT]: ErrorID:${err.log_uuid}`);
+  console.warn(`[NEXT]: ErrorID:${err.log_uuid}`);
 
   // 写入日志
-  log.error(err);
+  console.error(err);
 
   // render the error page
   res.status(err.status || 500);
