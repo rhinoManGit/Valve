@@ -186,18 +186,26 @@ Action.ticketlist = async function (req, res, next) {
 
     let result    = await dao.searchAll(_query);
     let str = [];
-    let str2 = [];
+    //let str2 = [];
+    let temp1 = [];
+    //let temp2 = [];
 
     result.forEach(function(i) {
-      str.push(`\'${i['ChangeContent']['FLOW_NO']}'`)
-      str2.push(`\'${i['ChangeContent']['FLOW_NO']}'`)
+      if(temp1.indexOf(i['ChangeContent']['FLOW_NO']) ===-1){
+        str.push(`\'${i['ChangeContent']['FLOW_NO']}'`)
+        temp1.push(i['ChangeContent']['FLOW_NO'])
+      }
+      /*if(temp2.indexOf(i['ChangeContent']['FLOW_NO']) ===-1){
+        str2.push(`\'${i['ChangeContent']['FLOW_NO']}'`)
+        temp2.push(i['ChangeContent']['FLOW_NO'])
+      }*/
     })
 
     let sql =`delete from  MY_POS_SALEFLOW where OPER_TIME`+
         ` between '${day1}' and '${day2}' AND  FLOW_NO in (${str.join(',')})`;
 
     let sql2 =`delete from  MY_POS_PAYFLOW where OPER_TIME`+
-        ` between '${day1}' and '${day2}' AND  FLOW_NO in (${str2.join(',')})`;
+        ` between '${day1}' and '${day2}' AND  FLOW_NO in (${str.join(',')})`;
 
     if(!result.length){
       sql = sql2 = '';
