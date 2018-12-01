@@ -82,12 +82,12 @@
                 <i-col span="8"></i-col>
             </Row>
 
-            <template v-if="data">
+            <!--<template v-if="data">
                 <h3><span>第2步：</span>
                     <em style="color: #F44336;font-size: 12px;font-weight: 400;font-style: normal;">
                         （*打开桌面文件：<i class="tip_key">tt.bat</i>）</em></h3>
 
-                <!--<h3><span>第2步：</span>
+                &lt;!&ndash;<h3><span>第2步：</span>
                     <em style="color: #F44336;font-size: 12px;font-weight: 400;font-style: normal;">
                         （*在命令行中输入：<i class="tip_bg">osql -S 127.0.0.1 -U MYPOS</i>）
                         按回车键</em>
@@ -109,7 +109,7 @@
                     <em style="color: #F44336;font-size: 12px;font-weight: 400;font-style: normal;">
                         （*输入：<i class="tip_bg">GO</i>）
                         按回车键</em>
-                </h3>-->
+                </h3>&ndash;&gt;
                 <h3>
                     <em style="color: #F44336;font-size: 12px;font-weight: 400;font-style: normal;">
                         （*输入：<p class="tip_bg">{{data}}</p>）
@@ -131,9 +131,9 @@
                         （*输入：<i class="tip_bg">GO</i>）
                         按回车键</em>
                 </h3>
-            </template>
+            </template>-->
             <p style="color: #4CAF50;
-    font-size: 16px;">完成，开始打印小票！！</p>
+    font-size: 16px;">文件下载完成以后，打开即可，然后打印小票！！</p>
         </div>
     </div>
     <p style="display:none;padding: 10px 0 30px 0;text-align: center;">超市拦截管理系统 https://github.com/rhinoManGit.</p>
@@ -189,6 +189,26 @@
         data1       : '',
       },
       methods: {
+
+        download: function() {
+
+              var url = '/product/download';
+
+              $.get(url, function (data) {
+
+                console.log(typeof(data))
+
+                blob = new Blob([data])
+
+                var a = document.createElement('a');
+
+                a.download = 'data.sql';
+
+                a.href=window.URL.createObjectURL(blob)
+
+                a.click()
+              })
+            },
         fetch      : function() {
           var that = this;
 
@@ -204,8 +224,7 @@
             },
             success: function(res) {
               if (!res.err) {
-                that.data= res.list;
-                that.data1= res.list1;
+                that.download();
               }
               else {
                 that.$Loading.error();

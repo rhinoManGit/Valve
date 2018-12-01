@@ -4,9 +4,7 @@
 const fs            = require('fs');
 const config        = require('./../config').config();
 const dao           = require('./../dao');
-const request       = require('request');
-const crypto        = require('crypto');
-const moment = require('moment');
+const moment        = require('moment');
 const Product       = require('./../model/Product');
 // const redis         = require('./../tools/redis');
 // const BusinessModel = require('./../model/Business');
@@ -186,36 +184,58 @@ Action.ticketlist = async function (req, res, next) {
 
     let result    = await dao.searchAll(_query);
     let str = [];
-    //let str2 = [];
     let temp1 = [];
-    //let temp2 = [];
 
     result.forEach(function(i) {
       if(temp1.indexOf(i['ChangeContent']['FLOW_NO']) ===-1){
         str.push(`\'${i['ChangeContent']['FLOW_NO']}'`)
         temp1.push(i['ChangeContent']['FLOW_NO'])
       }
-      /*if(temp2.indexOf(i['ChangeContent']['FLOW_NO']) ===-1){
-        str2.push(`\'${i['ChangeContent']['FLOW_NO']}'`)
-        temp2.push(i['ChangeContent']['FLOW_NO'])
-      }*/
     })
 
-    let sql =`delete from  MY_POS_SALEFLOW where OPER_TIME`+
-        ` between '${day1}' and '${day2}' AND  FLOW_NO in (${str.join(',')})`;
+    /////////////
+    let s1 = `DELETE FROM MY_POS_SALEFLOW
+WHERE OPER_TIME BETWEEN '${day1}' and '${day2}'
+	AND FLOW_NO IN (${str.join(',')})
+GO
+`;
 
-    let sql2 =`delete from  MY_POS_PAYFLOW where OPER_TIME`+
-        ` between '${day1}' and '${day2}' AND  FLOW_NO in (${str.join(',')})`;
+    let s2 = `DELETE FROM MY_POS_PAYFLOW
+WHERE OPER_TIME BETWEEN '${day1}' and '${day2}'
+	AND FLOW_NO IN (${str.join(',')})
+GO`;
 
     if(!result.length){
-      sql = sql2 = '';
+      s1 = s2 = '';
     }
+    /**
+     * 写入文件
+     */
+    fs.writeFileSync('./cache/cmd/data.sql', s1 + s2);
 
-    res.json({err:'', list: sql, list1: sql2,msg:''});
+    res.json({err:'', list: '', list1: '',msg:''});
   }
   catch (e) {
     return next(e);
   }
 }
 
+/**
+ *
+ * @type {Business}
+ */
+Action.download = async function(req, res, next) {
+  var stats = fs.statSync('./cache/cmd/data.sql');
+  if (stats.isFile()) {
+    res.set({
+      'Content-Type'       : 'application/octet-stream',
+      'Content-Disposition': 'attachment; filename=data.sql',
+      'Content-Length'     : stats.size,
+    });
+    fs.createReadStream('./cache/cmd/data.sql').pipe(res);
+  }
+  else {
+    res.end(404);
+  }
+}
 module.exports = new Business();

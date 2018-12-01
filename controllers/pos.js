@@ -102,7 +102,7 @@ module.exports = async function(req, res, next) {
   *
   * */
   request({url: api}, async function(error, response, body) {
-  
+
     if (error) {
       console.log(`解密失败.............不拦截${error.message}`);
       req.pipe(request.post(fullUrl)).pipe(res);
