@@ -21,9 +21,9 @@ const action = Index.prototype;
 * */
 action.login = async function(query, page, pageSize) {
 
-  let db = await mongodb.createDB();
+  //let db = await mongodb.createDB();
 
-  return await mongodb.search(db, DB_User, query, page, pageSize);
+  return await mongodb.search( DB_User, query, page, pageSize);
 };
 
 /*
@@ -32,9 +32,9 @@ action.login = async function(query, page, pageSize) {
 * */
 action.findRate = async function(query, page, pageSize) {
 
-  let db = await mongodb.createDB();
+  //let db = await mongodb.createDB();
 
-  return await mongodb.search(db, DB_Rate, query, page, pageSize);
+  return await mongodb.search(DB_Rate, query, page, pageSize);
 };
 
 /*
@@ -43,9 +43,9 @@ action.findRate = async function(query, page, pageSize) {
 * */
 action.addRate = async function(businesser) {
 
-  let db = await mongodb.createDB();
+ // let db = await mongodb.createDB();
 
-  return await mongodb.add(db, DB_Rate, businesser);
+  return await mongodb.add(DB_Rate, businesser);
 };
 
 /*
@@ -54,9 +54,9 @@ action.addRate = async function(businesser) {
 * */
 action.updateRate = async function(query, obj) {
 
-  let db = await mongodb.createDB();
+  //let db = await mongodb.createDB();
 
-  return await mongodb.update(db, DB_Rate, query, obj);
+  return await mongodb.update(DB_Rate, query, obj);
 };
 
 /*
@@ -65,9 +65,9 @@ action.updateRate = async function(query, obj) {
  * */
 action.insertList = async function(obj) {
 
-  let db = await mongodb.createDB();
+  //let db = await mongodb.createDB();
 
-  return await mongodb.add(db, DB_Intercept, obj);
+  return await mongodb.add(DB_Intercept, obj);
 };
 
 /*
@@ -76,9 +76,9 @@ action.insertList = async function(obj) {
  * */
 action.searchList = async function(query, page, pageSize) {
 
-  let db = await mongodb.createDB();
+  //let db = await mongodb.createDB();
 
-  return await mongodb.search(db, DB_Intercept, query, page, pageSize);
+  return await mongodb.search(DB_Intercept, query, page, pageSize);
 };
 
 /*
@@ -87,9 +87,9 @@ action.searchList = async function(query, page, pageSize) {
  * */
 action.searchAll = async function(query) {
 
-  let db = await mongodb.createDB();
+  //let db = await mongodb.createDB();
 
-  return await mongodb.searchAll(db, DB_Intercept, query);
+  return await mongodb.searchAll(DB_Intercept, query);
 };
 
 /*
@@ -98,9 +98,9 @@ action.searchAll = async function(query) {
  * */
 action.complexSearch = async function(query) {
 
-  let db = await mongodb.createDB();
+  //let db = await mongodb.createDB();
 
-  return await mongodb.composite(db, DB_Intercept, query);
+  return await mongodb.composite(DB_Intercept, query);
 };
 
 /*
@@ -109,84 +109,9 @@ action.complexSearch = async function(query) {
  * */
 action.searchCount = async function(query) {
 
-  let db = await mongodb.createDB();
+  //let db = await mongodb.createDB();
 
-  return await mongodb.getCount(db, DB_Intercept, query);
+  return await mongodb.getCount(DB_Intercept, query);
 };
-/*
- * add businesser
- *
- * */
-/*action.addBusiness = async function(businesser) {
-
-  let db = await mongodb.createDB();
-
-  return await mongodb.add(db, DB_Business, businesser);
-};
-
-/!*
- * add art
- *
- * *!/
-action.addArt = async function(art) {
-
-  let db = await mongodb.createDB();
-
-  return await mongodb.add(db, DB_Art, art);
-};
-
-/!*
- *
- *
- * *!/
-action.artSearch = async function(query, page, pageSize) {
-
-  let db = await mongodb.createDB();
-
-  return await mongodb.search(db, DB_Art, query, page, pageSize);
-};
-
-/!*
- *
- *
- * *!/
-action.find = async function(query, page, pageSize) {
-
-  let db = await mongodb.createDB();
-
-  return await mongodb.search(db, DB_Business, query, page, pageSize);
-};
-
-/!*
- *
- *
- * *!/
-action.updateBusiness = async function(query, obj) {
-
-  let db = await mongodb.createDB();
-
-  return await mongodb.update(db, DB_Business, query, obj);
-};
-
-action.updateArt = async function(query, obj) {
-
-  let db = await mongodb.createDB();
-
-  return await mongodb.update(db, DB_Art, query, obj);
-};
-
-action.deleteBusiness = async function(query, obj) {
-
-  let db = await mongodb.createDB();
-
-  return await mongodb.remove(db, DB_Business, query, obj);
-};
-
-action.deleteArt = async function(query, obj) {
-
-  let db = await mongodb.createDB();
-
-  return await mongodb.remove(db, DB_Art, query, obj);
-};*/
 
 module.exports = new Index();

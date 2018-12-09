@@ -38,7 +38,7 @@ morgan.token('id', function getId(req) {
 // 每个URL都会有一个对应的uuid
 app.use(assignId);
 
-app.use(morgan(':status :method :url :response-time :date[web]'));
+//app.use(morgan(':status :method :url :response-time :date[web]'));
 
 // uncomment after placing your favicon in /public
 app.use(bodyParser.json());
@@ -51,7 +51,12 @@ app.use(bodyParser.urlencoded({extended: false}));
  *
  * */
 app.use(cookieParser());
+app.use(/favicon\.ico/, (req, res, next)=>{
+  res.end('ok');
+})
 app.use(session({
+  resave           : true,
+  saveUninitialized: false,
   genid : function(req) {
     return uuid.v4(); // use UUIDs for session IDs
   },

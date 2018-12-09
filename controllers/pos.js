@@ -104,7 +104,7 @@ module.exports = async function(req, res, next) {
   request({url: api}, async function(error, response, body) {
 
     if (error) {
-      console.log(`解密失败.............不拦截${error.message}`);
+      console.log(`解密失败.............不拦截${error.message},${error.stack}`);
       req.pipe(request.post(fullUrl)).pipe(res);
       return;
     }
@@ -112,7 +112,18 @@ module.exports = async function(req, res, next) {
 
     try {
 
-      param = JSON.parse(JSON.parse(body));
+      try{
+        if(typeof body === 'string'){
+          body = JSON.parse(body);
+        }
+        if(typeof body === 'string'){
+          body = JSON.parse(body);
+        }
+      }catch (e){
+        console.log(`返回值转化出错.........${JSON.stringify(body)}`)
+      }
+
+      param = body;
 
       param['ChangeContent'] = JSON.parse(param.ChangeContent || '{}');
 

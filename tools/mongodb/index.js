@@ -26,28 +26,29 @@ action.createDB = function() {
   return new Promise(function(resolve, reject) {
 
     // Use connect method to connect to the server
-    MongoClient.connect(/*'mongodb://127.0.0.1:27017'*/url, function(err, client) {
+    MongoClient.connect(url, function(err, client) {
 
       assert.equal(null, err);
 
-      const db = client.db(dbName);
-
-      resolve(db);
-
+      //let db = client.db(dbName);
+      resolve(client);
     });
   });
 };
 
 /*
  *
- * 获取课程列表
+ *
  * */
-action.orderList = function(db, coll, query, page = 1, pageSize = 10) {
+action.orderList = async function(coll, query, page = 1, pageSize = 10) {
+
+  let client = await this.createDB();
+  let db     = client.db(dbName);
 
   return new Promise(function(resolve, reject) {
 
     // Get the documents collection
-    const collection = db.collection(coll);
+    let collection = db.collection(coll);
 
     // Find some documents
     collection.find(query).sort({_id: 1}).skip((page - 1
@@ -55,20 +56,24 @@ action.orderList = function(db, coll, query, page = 1, pageSize = 10) {
       assert.equal(err, null);
 
       resolve(docs);
+      client.close();
     });
   });
 };
 
 /*
  *
- * 获取课程列表
+ *
  * */
-action.orderDetail = function(db, coll, query) {
+action.orderDetail = async function(coll, query) {
+
+  let client = await this.createDB();
+  let db     = client.db(dbName);
 
   return new Promise(function(resolve, reject) {
 
     // Get the documents collection
-    const collection = db.collection(coll);
+    let collection = db.collection(coll);
 
     // Find some documents
     collection.find(query).sort({_id: 1}).limit(10).toArray(
@@ -76,6 +81,7 @@ action.orderDetail = function(db, coll, query) {
           assert.equal(err, null);
 
           resolve(docs);
+          client.close();
         });
   });
 };
@@ -84,18 +90,22 @@ action.orderDetail = function(db, coll, query) {
  *
  *
  * */
-action.findDocuments = function(db, coll, query) {
+action.findDocuments = async function(coll, query) {
+
+  let client = await this.createDB();
+  let db     = client.db(dbName);
 
   return new Promise(function(resolve, reject) {
 
     // Get the documents collection
-    const collection = db.collection(coll);
+    let collection = db.collection(coll);
 
     // Find some documents
     collection.find(query).toArray(function(err, docs) {
       assert.equal(err, null);
 
       resolve(docs);
+      client.close();
     });
   });
 
@@ -105,12 +115,15 @@ action.findDocuments = function(db, coll, query) {
  *
  *
  * */
-action.search = function(db, coll, query, page = 1, pageSize = 10) {
+action.search = async function(coll, query, page = 1, pageSize = 10) {
+
+  let client = await this.createDB();
+  let db     = client.db(dbName);
 
   return new Promise(function(resolve, reject) {
 
     // Get the documents collection
-    const collection = db.collection(coll);
+    let collection = db.collection(coll);
 
     // Find some documents
     collection.find(query).sort({CreateDate: 1}).skip((page - 1
@@ -118,6 +131,7 @@ action.search = function(db, coll, query, page = 1, pageSize = 10) {
       assert.equal(err, null);
 
       resolve(docs);
+      client.close();
     });
   });
 };
@@ -131,18 +145,22 @@ action.search = function(db, coll, query, page = 1, pageSize = 10) {
  * @param pageSize
  * @returns {Promise}
  */
-action.searchAll = function(db, coll, query) {
+action.searchAll = async function(coll, query) {
+
+  let client = await this.createDB();
+  let db     = client.db(dbName);
 
   return new Promise(function(resolve, reject) {
 
     // Get the documents collection
-    const collection = db.collection(coll);
+    let collection = db.collection(coll);
 
     // Find some documents
     collection.find(query).sort({CreateDate: 1}).limit(500).toArray(function(err, docs) {
       assert.equal(err, null);
 
       resolve(docs);
+      client.close();
     });
   });
 };
@@ -151,16 +169,19 @@ action.searchAll = function(db, coll, query) {
  *
  *
  * */
-action.searchCount = function(db, coll, query) {
+action.searchCount = async function(coll, query) {
+
+  let client = await this.createDB();
+  let db     = client.db(dbName);
 
   return new Promise(function(resolve, reject) {
 
     // Get the documents collection
-    const collection = db.collection(coll);
+    let collection = db.collection(coll);
 
     // Find some documents
     resolve(collection.find(query).sort({CreateDate: 1}).count());
-
+    client.close();
   });
 };
 
@@ -168,18 +189,22 @@ action.searchCount = function(db, coll, query) {
  *聚合
  *
  * */
-action.composite = function(db, coll, query) {
+action.composite = async function(coll, query) {
+
+  let client = await this.createDB();
+  let db     = client.db(dbName);
 
   return new Promise(function(resolve, reject) {
 
     // Get the documents collection
-    const collection = db.collection(coll);
+    let collection = db.collection(coll);
 
     // Find some documents
     collection.aggregate(query).toArray(function(err, docs) {
       assert.equal(err, null);
 
       resolve(docs);
+      client.close();
     });
 
 
@@ -190,12 +215,15 @@ action.composite = function(db, coll, query) {
  *
  *
  * */
-action.updateDocument = function(db, coll, query, obj) {
+action.updateDocument = async function(coll, query, obj) {
+
+  let client = await this.createDB();
+  let db     = client.db(dbName);
 
   return new Promise(function(resolve, reject) {
 
     // Get the documents collection
-    const collection = db.collection(coll);
+    let collection = db.collection(coll);
 
     collection.updateOne(query, obj,
         function(err, result) {
@@ -203,6 +231,7 @@ action.updateDocument = function(db, coll, query, obj) {
           assert.equal(1, result.result.n);
 
           resolve(result.result);
+          client.close();
         },
     );
   });
@@ -213,18 +242,22 @@ action.updateDocument = function(db, coll, query, obj) {
  * add user
  *
  * */
-action.add = function(db, coll, data) {
+action.add = async function(coll, data) {
+
+  let client = await this.createDB();
+  let db     = client.db(dbName);
 
   return new Promise(function(resolve, reject) {
 
     // Get the documents collection
-    const collection = db.collection(coll);
+    let collection = db.collection(coll);
 
     // Find some documents
     collection.insert(data, function(err, docs) {
       assert.equal(err, null);
 
       resolve(docs.result);
+      client.close();
     });
   });
 };
@@ -233,18 +266,22 @@ action.add = function(db, coll, data) {
  * update user
  *
  * */
-action.update = function(db, coll, query, obj) {
+action.update = async function(coll, query, obj) {
+
+  let client = await this.createDB();
+  let db     = client.db(dbName);
 
   return new Promise(function(resolve, reject) {
 
     // Get the documents collection
-    const collection = db.collection(coll);
+    let collection = db.collection(coll);
 
     collection.updateOne(query, {$set: obj}, function(err, result) {
       assert.equal(err, null);
       //assert.equal(1, result.result.n);
       console.log('Updated the document with the field a equal to 2');
       resolve(result);
+      client.close();
     });
   });
 };
@@ -253,18 +290,22 @@ action.update = function(db, coll, query, obj) {
  * delete
  *
  * */
-action.remove = function(db, coll, query, obj) {
+action.remove = async function(coll, query, obj) {
+
+  let client = await this.createDB();
+  let db     = client.db(dbName);
 
   return new Promise(function(resolve, reject) {
 
     // Get the documents collection
-    const collection = db.collection(coll);
+    let collection = db.collection(coll);
 
     collection.remove(query, function(err, result) {
       assert.equal(err, null);
 
       console.log('Updated the document with the field a equal to 2');
       resolve(result);
+      client.close();
     });
   });
 };
@@ -273,14 +314,18 @@ action.remove = function(db, coll, query, obj) {
  * count
  *
  * */
-action.getCount = function(db, coll, query, obj) {
+action.getCount = async function(coll, query, obj) {
+
+  let client = await this.createDB();
+  let db     = client.db(dbName);
 
   return new Promise(function(resolve, reject) {
 
     // Get the documents collection
-    const collection = db.collection(coll);
+    let collection = db.collection(coll);
 
     resolve(collection.find(query).count());
+    client.close();
   });
 };
 
