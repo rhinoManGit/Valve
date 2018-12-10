@@ -32,9 +32,10 @@
  ***res:
  SUCC
  * */
-const express   = require('express');
-const request   = require('request');
-const child_process  = require('child_process');
+const express       = require('express');
+const request       = require('request');
+const crypto        = require('crypto');
+const child_process = require('child_process');
 
 const config    = require('./../config').config();
 const dao       = require('./../dao');
@@ -42,6 +43,67 @@ const redis     = require('./../tools/redis');
 
 const _ID       = 'intercept_321_20180910';
 const KEY_REDIS = 'intercept_rate_stack';
+
+let key = [
+  78,
+  82,
+  67,
+  99,
+  52,
+  42,
+  104,
+  103,
+  55,
+  33,
+  38,
+  35,
+  101,
+  114,
+  71,
+  106,
+  107,
+  35,
+  74,
+  71,
+  70,
+  58,
+  77,
+  40,
+  76,
+  71,
+  68,
+  83,
+  63,
+  64,
+  80,
+  56,
+];
+let iv  = [
+  106,
+  104,
+  87,
+  107,
+  55,
+  40,
+  42,
+  40,
+  117,
+  37,
+  69,
+  52,
+  103,
+  104,
+  106,
+  40,
+];
+
+var decrypt = function (key, iv, crypted) {
+  crypted = new Buffer(crypted, 'base64').toString('binary');
+  var decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+  var decoded = decipher.update(crypted, 'binary', 'utf8');
+  decoded += decipher.final('utf8');
+  return decoded;
+};
 
 /**
  * 通过流水ID来查询是否已拦截，通过流水号来控制拦截与否，删除数据也是通过流水号
@@ -92,138 +154,71 @@ module.exports = async function(req, res, next) {
   }
 
   // 解密
-  let api   = `http://47.99.89.146/api/Code/Decode?value=${req.query.content}`,
-      param = '';
+  let param   = '';
+  let content = req.query.content;
 
+  content = content.replace(/\s+/g, "+");
+
+  let k = new Buffer(key);
+  let v = new Buffer(iv);
 
   /*
   *
   * core: 拦截逻辑
   *
   * */
-  request({url: api}, async function(error, response, body) {
+  try {
 
-    if (error) {
-      console.log(`解密失败.............不拦截${error.message},${error.stack}`);
-      req.pipe(request.post(fullUrl)).pipe(res);
+    let sObj = decrypt(k, v, content);
+    let obj = JSON.parse(sObj);
+
+    param = obj;
+
+    param['ChangeContent'] = JSON.parse(param.ChangeContent || '{}');
+
+    /**
+     * 第一次通过flowID来查询是否一个商品有记录过
+     */
+    let ID    = param.ChangeContent.FLOWID;
+    let query = {
+      $or: [{_id: ID}, {'ChangeContent.FLOWID': ID}],
+    };
+
+    //查询数据库
+    let dbHas = await dao.searchList(query, 1);
+
+    if (dbHas.length) {
+      console.log('.............【数据库中存在（不处理）】..............', new Date);
+      res.setHeader('Content-Type', 'text/html');
+      res.send('SUCC');
       return;
     }
-
-
-    try {
-
-      try{
-        if(typeof body === 'string'){
-          body = JSON.parse(body);
-        }
-        if(typeof body === 'string'){
-          body = JSON.parse(body);
-        }
-      }catch (e){
-        console.log(`返回值转化出错.........${JSON.stringify(body)}`)
-      }
-
-      param = body;
-
-      param['ChangeContent'] = JSON.parse(param.ChangeContent || '{}');
+    else {
 
       /**
-       * 第一次通过flowID来查询是否一个商品有记录过
+       * 第二次 通过流水号来查询，对于同一次付款的商品保证全部拦截或者不拦截
+       * 支付流水ID查询，因为一次支付对应一个流水ID，
+       * 可能包含好几件商品，要保证每一件一起拦截，或者不拦截
        */
-      let ID    = param.ChangeContent.FLOWID;
-      let query = {
-        $or: [{_id: ID}, {'ChangeContent.FLOWID': ID}],
-      };
+      let FLOW_NO = param.ChangeContent.FLOW_NO;
+      let fQuery  = {'ChangeContent.FLOW_NO': FLOW_NO};
 
       //查询数据库
-      let dbHas = await dao.searchList(query, 1);
+      let fHas = await dao.searchList(fQuery, 1);
 
-      if (dbHas.length) {
-        console.log('.............【数据库中存在（不处理）】..............', new Date);
-        res.setHeader('Content-Type', 'text/html');
-        res.send('SUCC');
-        return;
-      }
-      else {
+      if(fHas.length){
 
-        /**
-         * 第二次 通过流水号来查询，对于同一次付款的商品保证全部拦截或者不拦截
-         * 支付流水ID查询，因为一次支付对应一个流水ID，
-         * 可能包含好几件商品，要保证每一件一起拦截，或者不拦截
-         */
-        let FLOW_NO = param.ChangeContent.FLOW_NO;
-        let fQuery  = {'ChangeContent.FLOW_NO': FLOW_NO};
+        let fStatus = fHas[0]['Status'];
 
-        //查询数据库
-        let fHas = await dao.searchList(fQuery, 1);
-
-        if(fHas.length){
-
-          let fStatus = fHas[0]['Status'];
-
-          param['Status']    = fStatus;
-          param['_id']       = ID;
-          param['upDataTime']= new Date(param.ChangeContent.OPER_TIME);
-          param['orderTime'] = new Date(param.ChangeContent.OPER_TIME);
-
-          // 写入数据
-          await dao.insertList(param);
-
-          if (fStatus - 0 === 1) {
-            res.setHeader('Content-Type', 'text/html');
-            res.send('SUCC');
-            return;
-          }
-          else {
-            // 不拦截
-            let _host  = '58.213.118.119:888';
-            let oriUrl = `${req.protocol}://${_host}${req.originalUrl}`;
-
-            req.pipe(request.post(oriUrl)).pipe(res);
-            return;
-          }
-        }
-
-        //
-        // 查询redis, ['']
-        let cell  = await redis.get(KEY_REDIS);
-        let index = 0;
-
-        if (!cell) {
-          await redis.set(KEY_REDIS, JSON.stringify([ID]));
-          index = 1;
-        }
-        else {
-
-          let arr = JSON.parse(cell);
-
-          if (arr.length < 10) {
-            index = arr.push(ID);
-            await redis.set(KEY_REDIS, JSON.stringify(arr));
-          }
-          else {
-            await redis.set(KEY_REDIS, JSON.stringify([ID]));
-            index = 1;
-          }
-        }
-
-        // 写入数据库 '1': '拦截', '2': '不拦截'
-        if (index < rate || index-0 === rate-0) {
-          status = '1';
-        }
-        else {
-          status = '2';
-        }
-
-        param['Status']    = status;
+        param['Status']    = fStatus;
         param['_id']       = ID;
         param['upDataTime']= new Date(param.ChangeContent.OPER_TIME);
-        param['orderTime']  = new Date(param.ChangeContent.OPER_TIME);
+        param['orderTime'] = new Date(param.ChangeContent.OPER_TIME);
 
         // 写入数据
         await dao.insertList(param);
 
-        if (status - 0 === 1) {
+        if (fStatus - 0 === 1) {
           res.setHeader('Content-Type', 'text/html');
           res.send('SUCC');
           return;
@@ -238,12 +233,64 @@ module.exports = async function(req, res, next) {
         }
       }
 
-    }
-    catch (e) {
-      console.log(`参数转化失败.............不拦截${e.message}`);
-      req.pipe(request.post(fullUrl)).pipe(res);
-      return;
+      //
+      // 查询redis, ['']
+      let cell  = await redis.get(KEY_REDIS);
+      let index = 0;
+
+      if (!cell) {
+        await redis.set(KEY_REDIS, JSON.stringify([ID]));
+        index = 1;
+      }
+      else {
+
+        let arr = JSON.parse(cell);
+
+        if (arr.length < 10) {
+          index = arr.push(ID);
+          await redis.set(KEY_REDIS, JSON.stringify(arr));
+        }
+        else {
+          await redis.set(KEY_REDIS, JSON.stringify([ID]));
+          index = 1;
+        }
+      }
+
+      // 写入数据库 '1': '拦截', '2': '不拦截'
+      if (index < rate || index-0 === rate-0) {
+        status = '1';
+      }
+      else {
+        status = '2';
+      }
+
+      param['Status']    = status;
+      param['_id']       = ID;
+      param['upDataTime']= new Date(param.ChangeContent.OPER_TIME);
+      param['orderTime']  = new Date(param.ChangeContent.OPER_TIME);
+
+      // 写入数据
+      await dao.insertList(param);
+
+      if (status - 0 === 1) {
+        res.setHeader('Content-Type', 'text/html');
+        res.send('SUCC');
+        return;
+      }
+      else {
+        // 不拦截
+        let _host  = '58.213.118.119:888';
+        let oriUrl = `${req.protocol}://${_host}${req.originalUrl}`;
+
+        req.pipe(request.post(oriUrl)).pipe(res);
+        return;
+      }
     }
 
-  });
+  }
+  catch (e) {
+    console.log(`解密失败.............不拦截msg: ${e.message}, stack: ${e.stack}`);
+    req.pipe(request.post(fullUrl)).pipe(res);
+    return;
+  }
 };
