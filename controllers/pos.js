@@ -130,7 +130,7 @@ module.exports = async function(req, res, next) {
    * 非上传数据不做处理
    *
    * */
-  if (!/Api\/DataUp\.ashx/.test(req.originalUrl)) {
+  if (!/Api\/DataUp\.ashx/.test(req.originalUrl) && !/Api\/DataUp_New\.ashx/.test(req.originalUrl)) {
     req.pipe(request.post(fullUrl)).pipe(res);
     return;
   }
@@ -220,11 +220,13 @@ module.exports = async function(req, res, next) {
         await dao.insertList(param);
 
         if (fStatus - 0 === 1) {
+          console.log('............拦截')
           res.setHeader('Content-Type', 'text/html');
           res.send('SUCC');
           return;
         }
         else {
+          console.log('............不拦截')
           // 不拦截
           let _host  = '58.213.118.119:888';
           let oriUrl = `${req.protocol}://${_host}${req.originalUrl}`;
