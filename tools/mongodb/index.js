@@ -8,42 +8,42 @@ const config      = require('./../../config').config();
 
 // Connection URL
 const url = 'mongodb://' + config['db_host'] + ':'
-    + config['db_port'];
+            + config['db_port'];
 
 // Database Name
 const dbName = config['db_DB'];
 
-function DB() {}
+const client = global['client'];
+
+function DB() {
+}
 
 const action = DB.prototype;
 
-/*
+/**
  *
- *
- * */
-action.createDB = function() {
+ * @param cb
+ */
+action.createDB = function(cb) {
 
-  return new Promise(function(resolve, reject) {
+  MongoClient.connect(url, function(err, client) {
 
-    // Use connect method to connect to the server
-    MongoClient.connect(url, function(err, client) {
-
-      assert.equal(null, err);
-
-      //let db = client.db(dbName);
-      resolve(client);
-    });
+    assert.equal(null, err);
+    cb(client);
   });
 };
 
-/*
+/**
  *
- *
- * */
+ * @param coll
+ * @param query
+ * @param page
+ * @param pageSize
+ * @returns {Promise<any>}
+ */
 action.orderList = async function(coll, query, page = 1, pageSize = 10) {
 
-  let client = await this.createDB();
-  let db     = client.db(dbName);
+  let db = client.db(dbName);
 
   return new Promise(function(resolve, reject) {
 
@@ -51,24 +51,28 @@ action.orderList = async function(coll, query, page = 1, pageSize = 10) {
     let collection = db.collection(coll);
 
     // Find some documents
-    collection.find(query).sort({_id: 1}).skip((page - 1
-    ) * pageSize).limit(pageSize).toArray(function(err, docs) {
-      assert.equal(err, null);
+    collection.find(query).
+               sort({_id: 1}).
+               skip((page - 1
+                    ) * pageSize).
+               limit(pageSize).
+               toArray(function(err, docs) {
+                 assert.equal(err, null);
 
-      resolve(docs);
-      client.close();
-    });
+                 resolve(docs);
+               });
   });
 };
 
-/*
+/**
  *
- *
- * */
+ * @param coll
+ * @param query
+ * @returns {Promise<any>}
+ */
 action.orderDetail = async function(coll, query) {
 
-  let client = await this.createDB();
-  let db     = client.db(dbName);
+  let db = client.db(dbName);
 
   return new Promise(function(resolve, reject) {
 
@@ -81,19 +85,19 @@ action.orderDetail = async function(coll, query) {
           assert.equal(err, null);
 
           resolve(docs);
-          client.close();
         });
   });
 };
 
-/*
+/**
  *
- *
- * */
+ * @param coll
+ * @param query
+ * @returns {Promise<any>}
+ */
 action.findDocuments = async function(coll, query) {
 
-  let client = await this.createDB();
-  let db     = client.db(dbName);
+  let db = client.db(dbName);
 
   return new Promise(function(resolve, reject) {
 
@@ -105,20 +109,22 @@ action.findDocuments = async function(coll, query) {
       assert.equal(err, null);
 
       resolve(docs);
-      client.close();
     });
   });
 
 };
 
-/*
+/**
  *
- *
- * */
+ * @param coll
+ * @param query
+ * @param page
+ * @param pageSize
+ * @returns {Promise<any>}
+ */
 action.search = async function(coll, query, page = 1, pageSize = 10) {
 
-  let client = await this.createDB();
-  let db     = client.db(dbName);
+  let db = client.db(dbName);
 
   return new Promise(function(resolve, reject) {
 
@@ -126,29 +132,28 @@ action.search = async function(coll, query, page = 1, pageSize = 10) {
     let collection = db.collection(coll);
 
     // Find some documents
-    collection.find(query).sort({CreateDate: 1}).skip((page - 1
-    ) * pageSize).limit(pageSize - 0).toArray(function(err, docs) {
-      assert.equal(err, null);
+    collection.find(query).
+               sort({CreateDate: 1}).
+               skip((page - 1
+                    ) * pageSize).
+               limit(pageSize - 0).
+               toArray(function(err, docs) {
+                 assert.equal(err, null);
 
-      resolve(docs);
-      client.close();
-    });
+                 resolve(docs);
+               });
   });
 };
 
 /**
  *
- * @param db
  * @param coll
  * @param query
- * @param page
- * @param pageSize
- * @returns {Promise}
+ * @returns {Promise<any>}
  */
 action.searchAll = async function(coll, query) {
 
-  let client = await this.createDB();
-  let db     = client.db(dbName);
+  let db = client.db(dbName);
 
   return new Promise(function(resolve, reject) {
 
@@ -156,23 +161,29 @@ action.searchAll = async function(coll, query) {
     let collection = db.collection(coll);
 
     // Find some documents
-    collection.find(query).sort({CreateDate: 1}).limit(500).toArray(function(err, docs) {
-      assert.equal(err, null);
+    collection.find(query).
+               sort({CreateDate: 1}).
+               limit(500).
+               toArray(function(err, docs) {
 
-      resolve(docs);
-      client.close();
-    });
+                 if(err){
+                   console.log(`[ error ] ${err.message}, ${err.stack}.`);
+                 }
+
+                 resolve(docs);
+               });
   });
 };
 
-/*
+/**
  *
- *
- * */
+ * @param coll
+ * @param query
+ * @returns {Promise<any>}
+ */
 action.searchCount = async function(coll, query) {
 
-  let client = await this.createDB();
-  let db     = client.db(dbName);
+  let db = client.db(dbName);
 
   return new Promise(function(resolve, reject) {
 
@@ -181,18 +192,18 @@ action.searchCount = async function(coll, query) {
 
     // Find some documents
     resolve(collection.find(query).sort({CreateDate: 1}).count());
-    client.close();
   });
 };
 
-/*
- *聚合
+/**
  *
- * */
+ * @param coll
+ * @param query
+ * @returns {Promise<any>}
+ */
 action.composite = async function(coll, query) {
 
-  let client = await this.createDB();
-  let db     = client.db(dbName);
+  let db = client.db(dbName);
 
   return new Promise(function(resolve, reject) {
 
@@ -201,24 +212,27 @@ action.composite = async function(coll, query) {
 
     // Find some documents
     collection.aggregate(query).toArray(function(err, docs) {
-      assert.equal(err, null);
+
+      if(err){
+        console.log(`[ error ] ${err.message}, ${err.stack}.`);
+      }
 
       resolve(docs);
-      client.close();
     });
-
 
   });
 };
 
-/*
+/**
  *
- *
- * */
+ * @param coll
+ * @param query
+ * @param obj
+ * @returns {Promise<any>}
+ */
 action.updateDocument = async function(coll, query, obj) {
 
-  let client = await this.createDB();
-  let db     = client.db(dbName);
+  let db = client.db(dbName);
 
   return new Promise(function(resolve, reject) {
 
@@ -227,25 +241,27 @@ action.updateDocument = async function(coll, query, obj) {
 
     collection.updateOne(query, obj,
         function(err, result) {
-          assert.equal(err, null);
-          assert.equal(1, result.result.n);
+
+          if(err){
+            console.log(`[ error ] ${err.message}, ${err.stack}.`);
+          }
 
           resolve(result.result);
-          client.close();
         },
     );
   });
 
 };
 
-/*
- * add user
+/**
  *
- * */
+ * @param coll
+ * @param data
+ * @returns {Promise<any>}
+ */
 action.add = async function(coll, data) {
 
-  let client = await this.createDB();
-  let db     = client.db(dbName);
+  let db = client.db(dbName);
 
   return new Promise(function(resolve, reject) {
 
@@ -254,22 +270,26 @@ action.add = async function(coll, data) {
 
     // Find some documents
     collection.insert(data, function(err, docs) {
-      assert.equal(err, null);
+
+      if(err){
+        console.log(`[ error ] ${err.message}, ${err.stack}.`);
+      }
 
       resolve(docs.result);
-      client.close();
     });
   });
 };
 
-/*
- * update user
+/**
  *
- * */
+ * @param coll
+ * @param query
+ * @param obj
+ * @returns {Promise<any>}
+ */
 action.update = async function(coll, query, obj) {
 
-  let client = await this.createDB();
-  let db     = client.db(dbName);
+  let db = client.db(dbName);
 
   return new Promise(function(resolve, reject) {
 
@@ -277,23 +297,25 @@ action.update = async function(coll, query, obj) {
     let collection = db.collection(coll);
 
     collection.updateOne(query, {$set: obj}, function(err, result) {
-      assert.equal(err, null);
-      //assert.equal(1, result.result.n);
-      console.log('Updated the document with the field a equal to 2');
+      if(err){
+        console.log(`[ error ] ${err.message}, ${err.stack}.`);
+      }
+
       resolve(result);
-      client.close();
     });
   });
 };
 
-/*
- * delete
+/**
  *
- * */
+ * @param coll
+ * @param query
+ * @param obj
+ * @returns {Promise<any>}
+ */
 action.remove = async function(coll, query, obj) {
 
-  let client = await this.createDB();
-  let db     = client.db(dbName);
+  let db = client.db(dbName);
 
   return new Promise(function(resolve, reject) {
 
@@ -301,23 +323,26 @@ action.remove = async function(coll, query, obj) {
     let collection = db.collection(coll);
 
     collection.remove(query, function(err, result) {
-      assert.equal(err, null);
 
-      console.log('Updated the document with the field a equal to 2');
+      if(err){
+        console.log(`[ error ] ${err.message}, ${err.stack}.`);
+      }
+
       resolve(result);
-      client.close();
     });
   });
 };
 
-/*
- * count
+/**
  *
- * */
+ * @param coll
+ * @param query
+ * @param obj
+ * @returns {Promise<any>}
+ */
 action.getCount = async function(coll, query, obj) {
 
-  let client = await this.createDB();
-  let db     = client.db(dbName);
+  let db = client.db(dbName);
 
   return new Promise(function(resolve, reject) {
 
@@ -325,10 +350,9 @@ action.getCount = async function(coll, query, obj) {
     let collection = db.collection(coll);
 
     resolve(collection.find(query).count());
-    client.close();
   });
 };
 
-module.exports = new DB();
+module.exports = DB;
 
 
