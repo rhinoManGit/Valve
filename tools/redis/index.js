@@ -1,44 +1,43 @@
-/*
-*
-*
-* */
-const Redis = require("ioredis");
+const Redis  = require('ioredis');
 const config = require('./../../config').config();
 
+class Index {
+  constructor() {
+    this.redis = new Redis(config['redis_port'], config['redis_ip']);
+  }
 
-function Index() {
-    this.redis = new Redis(config['redis_port'], config['redis_ip'])
-}
+  /**
+   *
+   * @param key
+   * @param value
+   * @param expire
+   * @returns {Promise<void>}
+   */
+  async set(key, value, expire) {
 
-/*
-* @param expire second
-* redis : command [SET]
-*
-* */
-Index.prototype.set= async function(key, value, expire){
-
-    if(expire)
+    if (expire)
       this.redis.set(key, value, 'EX', expire);
     else
       this.redis.set(key, value);
 
-}
+  }
 
-/*
-*
-* redis : command [GET]
-*
-* */
-Index.prototype.get= async function (key) {
+  /**
+   *
+   * @param key
+   * @returns {Promise<any>}
+   */
+  async get(key) {
 
-    let that =this;
+    let that = this;
 
-    return new Promise(function(resolve, reject){
+    return new Promise(function(resolve, reject) {
 
-        that.redis.get(key, function (err, result) {
-            resolve(result)
-        });
+      that.redis.get(key, function(err, result) {
+        resolve(result);
+      });
     });
+  }
 }
 
 module.exports = new Index();

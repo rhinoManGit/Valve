@@ -12,10 +12,12 @@ Action.index = function(req, res, next) {
   res.render('index', {});
 };
 
-/*
-* 登录view
-*
-* */
+/**
+ *
+ * @param req
+ * @param res
+ * @param next
+ */
 Action.login = function(req, res, next) {
   res.render('logining', {});
 };
@@ -36,9 +38,12 @@ Action.ticket = function(req, res, next) {
   res.render('ticket', {user: JSON.parse(req.session.user)});
 };
 
-/*
-* 配置
-* */
+/**
+ *
+ * @param req
+ * @param res
+ * @param next
+ */
 Action.conf = function(req, res, next) {
 
   if(!req.session.user){
@@ -52,9 +57,12 @@ Action.conf = function(req, res, next) {
   res.render('conf', {user: JSON.parse(req.session.user)});
 };
 
-/*
-* 报表
-* */
+/**
+ *
+ * @param req
+ * @param res
+ * @param next
+ */
 Action.report = function(req, res, next) {
 
   if(!req.session.user){
@@ -68,9 +76,13 @@ Action.report = function(req, res, next) {
 
 };
 
-/*
-* 登录
-* */
+/**
+ *
+ * @param req
+ * @param res
+ * @param next
+ * @returns {Promise<void>}
+ */
 Action.signin = async function(req, res, next) {
 
   var userName = req.body.username;

@@ -2,12 +2,9 @@
  * Created by Administrator on 2017/9/18 0018.
  */
 const fs            = require('fs');
-const config        = require('./../config').config();
 const dao           = require('./../dao');
 const moment        = require('moment');
 const Product       = require('./../model/Product');
-// const redis         = require('./../tools/redis');
-// const BusinessModel = require('./../model/Business');
 const _ID = 'intercept_321_20180910';
 
 function Business() {}
@@ -16,9 +13,13 @@ const Action = Business.prototype;
 
 Action.index = function(req, res, next) {};
 
-/*
-*
-* */
+/**
+ *
+ * @param req
+ * @param res
+ * @param next
+ * @returns {Promise<void>}
+ */
 Action.fetchrate = async function (req, res, next) {
 
   let result = await dao.findRate({_id: _ID});
@@ -30,12 +31,14 @@ Action.fetchrate = async function (req, res, next) {
   }
 
 }
-/*
+/**
  *
- * 更新比例
- *
- *
- * */
+ * @param req
+ * @param res
+ * @param next
+ * @param rate
+ * @returns {Promise<*>}
+ */
 Action.updaterate = async function(req, res, next, rate) {
 
   try {
@@ -68,10 +71,13 @@ Action.updaterate = async function(req, res, next, rate) {
 
 };
 
-/*
-* 查询列表
-* status: 1 拦截，2， 未拦截
-* */
+/**
+ *
+ * @param req
+ * @param res
+ * @param next
+ * @returns {Promise<*>}
+ */
 Action.list = async function(req, res, next) {
 
   try {
