@@ -2,8 +2,17 @@ const Redis  = require('ioredis');
 const config = require('./../../config').config();
 
 class Index {
+
   constructor() {
-    this.redis = new Redis(config['redis_port'], config['redis_ip']);
+    this.connection();
+  }
+
+  async connection() {
+
+    global['redis'] = new Redis(config['redis_port'], config['redis_ip']);
+    console.log(` [ redis ] connection is success.`);
+
+    return global['redis'];
   }
 
   /**
@@ -15,10 +24,14 @@ class Index {
    */
   async set(key, value, expire) {
 
+    if(!global['redis']){
+      await this.connection();
+    }
+
     if (expire)
-      this.redis.set(key, value, 'EX', expire);
+      global['redis'].set(key, value, 'EX', expire);
     else
-      this.redis.set(key, value);
+      global['redis'].set(key, value);
 
   }
 
@@ -29,11 +42,13 @@ class Index {
    */
   async get(key) {
 
-    let that = this;
+    if(!global['redis']){
+      await this.connection();
+    }
 
     return new Promise(function(resolve, reject) {
 
-      that.redis.get(key, function(err, result) {
+      global['redis'].get(key, function(err, result) {
         resolve(result);
       });
     });

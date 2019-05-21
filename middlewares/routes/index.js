@@ -28,12 +28,6 @@ function mvc(req, res, next) {
 
     next();
     return;
-    /*var err    = new Error(pathname + ' No Find!');
-
-     err.status = 404;
-
-     handle404(req, res, next, err);
-     return;*/
   }
 
   /*

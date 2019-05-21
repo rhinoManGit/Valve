@@ -12,8 +12,6 @@ const url = 'mongodb://' + config['db_host'] + ':'
 // Database Name
 const dbName = config['db_DB'];
 
-const client = global['client'];
-
 class DB {
 
   /**
@@ -28,8 +26,32 @@ class DB {
         console.log(`[ error ] ${err.message}, ${err.stack}.`);
       }
 
+      console.log(` [ mongo ] connection is success.`)
+
       cb(client);
     });
+  }
+
+  /**
+   *
+   * @returns {Promise<any>}
+   */
+  async connection() {
+
+    return new Promise(function(resolve, reject) {
+
+      MongoClient.connect(url, function(err, client) {
+
+        if (err) {
+          console.log(`[ error ] ${err.message}, ${err.stack}.`);
+        }
+
+        console.log(` [ mongo ] connection is success.`)
+
+        resolve(client);
+      });
+    })
+
   }
 
   /**
@@ -42,7 +64,11 @@ class DB {
    */
   async search(coll, query, page = 1, pageSize = 10) {
 
-    let db = client.db(dbName);
+    if(!global['client']){
+      global['client'] = await this.connection();
+    }
+
+    let db = global['client'].db(dbName);
 
     return new Promise(function(resolve, reject) {
 
@@ -72,7 +98,11 @@ class DB {
    */
   async searchAll(coll, query) {
 
-    let db = client.db(dbName);
+    if(!global['client']){
+      global['client'] = await this.connection();
+    }
+
+    let db = global['client'].db(dbName);
 
     return new Promise(function(resolve, reject) {
 
@@ -102,7 +132,11 @@ class DB {
    */
   async searchCount(coll, query) {
 
-    let db = client.db(dbName);
+    if(!global['client']){
+      global['client'] = await this.connection();
+    }
+
+    let db = global['client'].db(dbName);
 
     return new Promise(function(resolve, reject) {
 
@@ -122,7 +156,11 @@ class DB {
    */
   async composite(coll, query) {
 
-    let db = client.db(dbName);
+    if(!global['client']){
+      global['client'] = await this.connection();
+    }
+
+    let db = global['client'].db(dbName);
 
     return new Promise(function(resolve, reject) {
 
@@ -151,7 +189,11 @@ class DB {
    */
   async update(coll, query, obj) {
 
-    let db = client.db(dbName);
+    if(!global['client']){
+      global['client'] = await this.connection();
+    }
+
+    let db = global['client'].db(dbName);
 
     return new Promise(function(resolve, reject) {
 
@@ -177,7 +219,11 @@ class DB {
    */
   async getCount(coll, query, obj) {
 
-    let db = client.db(dbName);
+    if(!global['client']){
+      global['client'] = await this.connection();
+    }
+
+    let db = global['client'].db(dbName);
 
     return new Promise(function(resolve, reject) {
 
